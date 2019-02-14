@@ -17,6 +17,10 @@ except:
 g = Github(username, password)
 making_issue = False
 
+repo_name = False
+repo_issue_title = False
+repo_body = False
+
 
 # Get input
 # If it starts with !git then continue, else forget about it
@@ -70,35 +74,36 @@ class MyClient(discord.Client):
     try:
 
         async def makeIssue(self, info=None):
-            global making_issue
-            making_issue = True
+            global making_issue, repo_name, repo_issue_title, repo_body
+            making_issue = "True"
             await channel.send("It seems you'd like to make an issue! Let's continue. Type '!git cancel' at any time to cancel the process.")
 
-            await channel.send("**Please enter the name of the repository to which you'd like to submit an issue!** \n**Eg: turtlecoin-wallet-electron**")            
-            
-            while not info:
-                issue_repo = info
-                print(issue_repo)
-            
-            info = None
+            await channel.send("**Please enter the name of the repository to which you'd like to submit an issue!** \n**Eg: turtlecoin-wallet-electron**")
+            repo_name = "True"
 
-            while not info:
+            if repo_name != "True":
+
+                print(repo_name)
+
                 await channel.send("**Please enter the title of the issue**")
-                issue_title = info
-                print(issue_title)
+                repo_issue_title = "True"
             
-            info = None
-            #issue_body = input("\n**Please enter any extra info in the body of the issue! Optional, but recommended!**\n**Press enter to skip this step**\n")
+            if repo_name != "True" and repo_issue_title != "True":
 
-            if issue_repo and issue_title:
+                print(repo_issue_title)
+            
+                await channel.send("\n**Please enter any extra info in the body of the issue! Optional, but recommended!**\n**Press enter to skip this step**\n")
+                repo_body = "True"
+            
+            if repo_name != "True" and repo_issue_title != "True":
                 print('\nMaking issue...')
 
-            try:
+                try:
                 #repo = g.get_repo(f'Soja8/{issue_repo}')
                 #repo.create_issue(title=issue_title, body=issue_body)
-                print('\nAll done! The issue was succesfully made!')
-            except:
-                await channel.send("Some error occured, please try again!")
+                    print('\nAll done! The issue was succesfully made!')
+                except:
+                    await channel.send("Some error occured, please try again!")
 
         async def what_to_do(self, given_input):
             global making_issue
@@ -152,12 +157,23 @@ class MyClient(discord.Client):
             await channel.send('yeet')
 
         async def on_message(self, message):
+            global repo_name, repo_issue_title, repo_body
             # if the bot sent the message ignore it
             if message.author == client.user:
                 return
             # someone else said it, print its content
             print(message.content)
-            await self.getInput(message=message.content)
+            print(repo_name)
+
+            if repo_name == "True":
+                repo_name = message.content
+            elif repo_issue_title == "True":
+                repo_issue_title = message.content
+            elif repo_body == "True":
+                repo_body = message.content
+            else:
+                await self.getInput(message=message.content)
+
     except KeyboardInterrupt:
         print('\nExiting.. see you!\n')
 
