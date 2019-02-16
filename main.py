@@ -9,7 +9,7 @@ except:
     exit()
 
 try:
-	token = open('tokenfile.txt').read()
+    token = open('tokenfile.txt').read()
 except:
     print("Can't find token file, aborting.")
     exit()
@@ -17,10 +17,11 @@ except:
 g = Github(username, password)
 making_issue = False
 
-repo_name = False
-repo_issue_title = False
-repo_body = False
+original_message = None
 
+repo_name = None
+issue_title = None
+issue_body = None
 
 # Get input
 # If it starts with !git then continue, else forget about it
@@ -67,81 +68,111 @@ repo_body = False
 # TODO
 # wait for user to enter something
 # still check incoming msgs
+# prevent the thing from restarting every time it checks for user input
+# use it and make the issue
+# report back
+# proper err msgs
+
 
 class MyClient(discord.Client):
+    global repo_name, issue_title, issue_body
+    
     channel = None
 
     try:
 
-        async def makeIssue(self, info=None):
-            global making_issue, repo_name, repo_issue_title, repo_body
-            making_issue = "True"
-            await channel.send("It seems you'd like to make an issue! Let's continue. Type '!git cancel' at any time to cancel the process.")
+        async def makeIssue(self):
+            global making_issue
+            making_issue = True
 
-            await channel.send("**Please enter the name of the repository to which you'd like to submit an issue!** \n**Eg: turtlecoin-wallet-electron**")
-            repo_name = "True"
-
-            if repo_name != "True":
-
-                print(repo_name)
-
-                await channel.send("**Please enter the title of the issue**")
-                repo_issue_title = "True"
+            def pred(m):
+                global original_message
+                return m.channel == original_message.channel and m.author == original_message.author
             
-            if repo_name != "True" and repo_issue_title != "True":
+            try:
 
-                print(repo_issue_title)
+                if not repo_name:
+
+                    await channel.send("It seems you'd like to make an issue! Let's continue. Type '!git cancel' at any time to cancel the process.")
+                    await channel.send("**Please enter the name of the repository to which you'd like to submit an issue!** \n**Eg: !git turtlecoin-wallet-electron**")
+                    repo_name = await client.wait_for('message', check=pred, timeout=30.0)    
+                    repo_name = repo_name.content[4:]
+                
+                if not issue_title:
+
+                    await channel.send("**Please enter the title of the issue** \n**Eg: !git Issue with sending transaction**")
+                    issue_title = await client.wait_for('message', check=pred, timeout=30.0)
+                    issue_title = issue_title.content[4:]
+                
+                if not issue_body:
+                    await channel.send("\n**Please enter any extra info in the body of the issue! Optional, but recommended!**\n**Eg: !git Descriptive information on the issue** \n**Press enter to skip this step**\n")
+                    issue_body = await client.wait_for('message', check=pred, timeout=30.0)
+                    issue_body = issue_body.content[4:]
             
-                await channel.send("\n**Please enter any extra info in the body of the issue! Optional, but recommended!**\n**Press enter to skip this step**\n")
-                repo_body = "True"
-            
-            if repo_name != "True" and repo_issue_title != "True":
-                print('\nMaking issue...')
+            except Exception as e:
+                print(e)
+                if e == 'asyncio.TimeoutError':
+                    await channels.send("Timed out. Cancelling.")
+                await channel.send('Some error')
 
-                try:
-                #repo = g.get_repo(f'Soja8/{issue_repo}')
-                #repo.create_issue(title=issue_title, body=issue_body)
-                    print('\nAll done! The issue was succesfully made!')
-                except:
-                    await channel.send("Some error occured, please try again!")
 
-        async def what_to_do(self, given_input):
+            print('\nMaking issue...')
+
+            print(f"""\
+            name: {repo_name}
+            title: {issue_title}
+            body: {issue_body}
+            """)
+
+            try:
+            #repo = g.get_repo(f'Soja8/{issue_repo}')
+            #repo.create_issue(title=issue_title, body=issue_body)
+                print('\nAll done! The issue was succesfully made!')
+            except:
+                await channel.send("Some error occured, please try again!")
+            return
+
+        async def what_to_do(self, message):
             global making_issue
 
             if not making_issue:
                 try:
-                    thing_to_do = given_input[1]
-                    if thing_to_do == 'makeissue':
+                    thing_to_do = message[1:]
+                    print(thing_to_do)
+                    if thing_to_do[0] == 'makeissue':
                         await channel.send("We're making an issue")
                         await self.makeIssue()
                     else:
                         await channel.send('Not sure what to do, aborting')
                         return
-                except:
+                except Exception as e:
+                    print(e)
                     return
             else: # making an issue
                 try:
-                    thing_to_do = given_input[1]
-                    if thing_to_do == 'makeissue':
+                    thing_to_do = message[1]
+                    print(thing_to_do)
+                    if thing_to_do[0] == 'makeissue':
                         await channel.send("Already making issue, use '!git cancel' to cancel current process")
                         return
-                    elif thing_to_do == 'cancel':
+                    elif thing_to_do[0] == 'cancel':
                         await channel.send('Cancelling...')
                         making_issue = False
                         return
                     else:
-                        await self.makeIssue(info=given_input)
-                except:
-                    pass
+                        print("doing something else, passsing it again")
+                        await self.makeIssue()
+                except Exception as e:
+                    print(e)
         
         async def getInput(self, message):        
             inputed = message.split(" ")
 
-            if inputed[0] != "!git" and not making_issue: # not what we want
+            if inputed[0] != "!git": # Not directed to bot, discard it
                 await channel.send("Not what we want, ignoring")
                 return
             else:
-                await self.what_to_do(given_input=inputed) # what we want, pass it off to a function
+                await self.what_to_do(message=inputed) # Sent to the bot, pass it off to a function
 
         async def on_ready(self):
             global channel
@@ -157,22 +188,17 @@ class MyClient(discord.Client):
             await channel.send('yeet')
 
         async def on_message(self, message):
-            global repo_name, repo_issue_title, repo_body
+            global original_message
+
             # if the bot sent the message ignore it
             if message.author == client.user:
                 return
             # someone else said it, print its content
             print(message.content)
-            print(repo_name)
 
-            if repo_name == "True":
-                repo_name = message.content
-            elif repo_issue_title == "True":
-                repo_issue_title = message.content
-            elif repo_body == "True":
-                repo_body = message.content
-            else:
-                await self.getInput(message=message.content)
+            original_message = message
+            
+            await self.getInput(message=message.content)
 
     except KeyboardInterrupt:
         print('\nExiting.. see you!\n')
