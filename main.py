@@ -17,13 +17,8 @@ except:
     exit()
 
 g = Github(username, password)
-making_issue = False
 
-repo_name = False
-issue_title = False
-issue_body = False
-
-original_message = None
+making_issue = original_message = repo_name = issue_title = issue_body = False
 
 # Get input
 # If it starts with !git then continue, else forget about it
@@ -70,7 +65,7 @@ original_message = None
 # TODO
 # wait for user to enter something
 # still check incoming msgs
-# prevent the thing from discaring the name of the thing...??????
+# prevent the thing from discaring the body of the thing??? it's assigning the title thing to it for some reason?????????????
 # use it and make the issue
 # report back
 # proper err msgs
@@ -86,6 +81,8 @@ class MyClient(discord.Client):
             global making_issue, repo_name, issue_title, issue_body
             making_issue = True
 
+            print(issue_body)
+
             def check(m):
                 global original_message
                 return m.channel == original_message.channel and m.author == original_message.author
@@ -94,41 +91,54 @@ class MyClient(discord.Client):
                 if not info:
                     await channel.send("It seems you'd like to make an issue! Let's continue. Type '!git cancel' at any time to cancel the process.")
                     await channel.send("**Please enter the name of the repository to which you'd like to submit an issue!** \n*Eg: !git turtlecoin-wallet-electron*")
-                    repo_name = await client.wait_for('message', check=check, timeout=30.0)
-                else:
                     try:
                         repo_name = await client.wait_for('message', check=check, timeout=30.0)
-                        print(repo_name)
                         repo_name = repo_name.content[4:]
-                        #info = None
+                    except:
+                        traceback.print_exc()
+                """
+                else:    
+                    try:
+                        await channel.send(f"info2: {info.content}")
+                        await channel.send(f"info: {info[0].content}")
+                        repo_name = await client.wait_for('message', check=check, timeout=30.0)
+                        repo_name = repo_name.content[4:]
                         return
                     except:
                         print("whoops")
                         traceback.print_exc()
+               """ 
             
             if not issue_title:
                 if not info:
                     await channel.send("**Please enter the title of the issue** \n*Eg: !git Issue with sending transaction*")
-                    issue_title = await client.wait_for('message', check=check, timeout=30.0)
+                    try:
+                        issue_title = await client.wait_for('message', check=check, timeout=30.0)
+                        issue_title = issue_title.content[4:]
+                    except:
+                        traceback.print_exc()
+                issue_body = False
+                """
                 else:
                     try:
                         issue_title = await client.wait_for('message', check=check, timeout=30.0)
-                        print(issue_title)
+                        await channel.send(f"2: {issue_title.content}")
                         issue_title = issue_title.content[4:]
-                        #info = None
                         return
                     except:
                         print("whoops2")
                         traceback.print_exc()
-            
-            if not issue_body:
+                """
+
+            if not issue_body and issue_body != issue_title:
                 if not info:
                     await channel.send("\n**Please enter any extra info in the body of the issue! Optional, but recommended!**\n*Eg: !git Descriptive information on the issue* \n*Type `!git` to skip this step*\n")
                     issue_body = await client.wait_for('message', check=check, timeout=30.0)
+                    await channel.send(f"1: {issue_body.content}")
                 else:
                     try:
                         issue_body = await client.wait_for('message', check=check, timeout=30.0)
-                        print(issue_body)
+                        await channel.send(f"2: {issue_body.content}")
                         issue_body = issue_body.content[4:]
                         #info = None
                         return
