@@ -72,30 +72,33 @@ reserved_commands = ['makeissue', 'cancel']
 # report back
 # proper err msgs
 
-
 class MyClient(discord.Client):
 
 	channel = None
 
 	try:
 
-		async def sent_reserved_command(self, info):
+		async def sent_reserved_command(self, info, new_issue=False):
 			global channel
 			try:
 				reserved_no = reserved_commands.index(info)
 				existing_thing = reserved_commands[reserved_no]
 				if existing_thing == 'makeissue':
-					await channel.send("Already making issue, use '!git cancel' to cancel current process")
-					return "restart"
+					if not new_issue:
+						await channel.send("Already making issue, use '!git cancel' to cancel current process")
+						return "restart"
+					else:
+						return
 				elif existing_thing == 'cancel':
 					await channel.send("Cancelling operation...")
 					return "exit"
 				else:
 					return
 			except:
+				traceback.print_exc()
 				return
 
-		async def make_issue(self, info=None):
+		async def make_issue(self, info=None, new_issue= False):
 			global making_issue, repo_name, issue_title, issue_body
 			making_issue = True
 
@@ -105,28 +108,25 @@ class MyClient(discord.Client):
 
 			# if we do !git makeissue for the 3rd time it restarts it for some reason..... need to fix that.
 
+			sent_reserved = await self.sent_reserved_command(info=original_message.content[5:], new_issue=new_issue)
+			if sent_reserved == 'exit':
+				print("exiting")
+				return
+			elif sent_reserved == "restart":
+				return
+			else:
+				pass
+
 			if not repo_name:
 				if not info:
-					print("useless bruh")
-					await channel.send("It seems you'd like to make an issue! Let's continue. Type '!git cancel' at any time to cancel the process.")
+					await channel.send("It seems you'd like to make an issue! Let's continue. Type `!git cancel` at any time to cancel the process.")
 					await channel.send("**Please enter the name of the repository to which you'd like to submit an issue!** \n*Eg: `!git turtlecoin-wallet-electron`*")
 					while not repo_name:
-						print("restarted")
 						try:
 							repo_name = await client.wait_for('message', check=check, timeout=30.0)
 							repo_name = repo_name.content[5:]
-
-							sent_reserved = await self.sent_reserved_command(info=repo_name)
-							if sent_reserved == 'exit':
-								print("exiting")
-								return
-							elif sent_reserved == "restart":
-								repo_name = False
-							else:
-								pass
 						except:
 							traceback.print_exc()
-						print("restart2")
 						
 			if not issue_title:
 				if not info:
@@ -199,7 +199,7 @@ class MyClient(discord.Client):
 			if not making_issue:
 				try:
 					if thing_to_do[0] == 'makeissue':
-						await self.make_issue()
+						await self.make_issue(new_issue=True)
 					else:
 						return
 				except:
