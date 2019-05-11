@@ -1,7 +1,15 @@
+# TODO
+# Make sure makeissue can't be called multiple times
+# Cancel everything when .git cancel is called
+# Do the issue title and issue body part
+# Make the issue
+# Catch errors, return descriptive ones
+
 from github import Github
 from discord.ext import commands
-
-# todo actually do the stuff bruh
+from threading import Thread
+import time
+import traceback
 
 try:
 	username = 'Soja8'
@@ -12,11 +20,65 @@ except:
 	exit()
 
 g = Github(username, password) # log into github my g
+g_org = g.get_organization("TurtleCoin")
+g_org_repos = None
 
 bot = commands.Bot(command_prefix='.git ') # add a space in the prefix
 bot.remove_command('help') # remove command so that we can make our own
 
+__TEST_MODE = False
+
 #reserved_commands = ['help', 'makeissue'] # list of the commands we make
+
+##############
+# Timer which keeps getting repo names
+# Runs once, then repeats once every day
+
+class BackgroundTimer(Thread):
+	def get_org_repos(self):
+		global g_org_repos
+		g_org_repos = g_org.get_repos()
+	def run(self):
+		while True:
+			self.get_org_repos()
+			time.sleep(86400) # sleep for one day
+
+timer = BackgroundTimer()
+timer.start()
+#
+#
+##############
+
+async def check_if_repo_valid(repo_name, ctx):
+	await ctx.send("Checking...")
+	# if the repo_name is in the list of repos, then it's True. otherwise it's not
+	for repo in g_org_repos:
+		g_repo_name = repo.name
+		if repo_name == g_repo_name:
+			return True
+	return False
+
+async def get_repo_name(ctx):
+
+	def check(m):
+		return m.channel == ctx.channel and m.author == ctx.author and m.content.startswith(".git")
+	
+	repo_name = None
+	
+	await ctx.send("**Please enter the name of the repository in which you'd like to make an issue!** \n*Eg: `.git turtlecoin-wallet-electron`*")
+
+	repo_name = await bot.wait_for('message', check=check)
+	repo_name = repo_name.content[5:]
+
+	if __TEST_MODE: # return it w/out checking since just testing
+		return repo_name
+	
+	if await check_if_repo_valid(repo_name, ctx): # it's all good
+		return repo_name
+	else: # invalid, return false and quit
+		await ctx.send("**Invalid repo name!** Quitting, please re-make your issue") # TODO: let the user continue where he left off.
+		return False
+
 
 @bot.event
 async def on_ready():
@@ -27,21 +89,13 @@ async def on_ready():
 async def makeissue(ctx): # we makin an issue bois
 	
 	await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.")
-	await ctx.send("**Please enter the name of the repository in which you'd like to make an issue!** \n*Eg: `.git turtlecoin-wallet-electron`*")
 
-	def check(m):
-		return m.channel == ctx.channel and m.author == ctx.author
-	
-	repo_name = None
-	while not repo_name:
-		repo_name = await bot.wait_for('message', check=check)
-		print(repo_name.content)
+	repo_name = await get_repo_name(ctx)
+	if not repo_name: # if the name is invalid, quit
+		return
+	await ctx.send("**Valid repo name!** Let's continue")
 
-# TODO: fix up this so that it ensures the checks
-# not reserved commands
-# cancel if a cancel command
-# wont go wack if called multiple times
-# etc
+	# do the rest
 
 @bot.command()
 async def help(ctx): # help message on ".git help"
@@ -49,7 +103,9 @@ async def help(ctx): # help message on ".git help"
 
 @bot.event
 async def on_command_error(ctx, error):
-	pass # get rid of command errors
+	print(error)
+	traceback.print_exc()
+	#pass # get rid of command errors
 	# this is called all the time whenver the user does `.git whatever`
 	# ugly when its being used for the title or whatever
 
