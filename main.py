@@ -7,7 +7,8 @@
 
 from github import Github
 from discord.ext import commands
-import threading
+from threading import Thread
+import time
 import traceback
 
 try:
@@ -22,23 +23,31 @@ g = Github(username, password) # log into github my g
 g_org = g.get_organization("TurtleCoin")
 g_org_repos = None
 
-timeout = 10.0 # 10 seconds 1 day = 86400
-
 bot = commands.Bot(command_prefix='.git ') # add a space in the prefix
 bot.remove_command('help') # remove command so that we can make our own
 
-__TEST_MODE = True
+__TEST_MODE = False
 
 #reserved_commands = ['help', 'makeissue'] # list of the commands we make
 
-def get_org_repos():
-	global g_org_repos
-	t = threading.Timer(10,0, get_org_repos)
-	t.start()
-	g_org_repos = g_org.get_repos()
+##############
+# Timer which keeps getting repo names
+# Runs once, then repeats once every day
 
-t = threading.Timer(10.0, get_org_repos)
-t.start()
+class BackgroundTimer(Thread):
+	def get_org_repos(self):
+		global g_org_repos
+		g_org_repos = g_org.get_repos()
+	def run(self):
+		while True:
+			self.get_org_repos()
+			time.sleep(86400) # sleep for one day
+
+timer = BackgroundTimer()
+timer.start()
+#
+#
+##############
 
 async def check_if_repo_valid(repo_name, ctx):
 	await ctx.send("Checking...")
@@ -48,7 +57,6 @@ async def check_if_repo_valid(repo_name, ctx):
 		if repo_name == g_repo_name:
 			return True
 	return False
-
 
 async def get_repo_name(ctx):
 
