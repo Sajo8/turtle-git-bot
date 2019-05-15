@@ -14,7 +14,15 @@ except:
     print("Can't find password/token file, aborting.")
     exit()
 
-_HELP_MSG = """\
+g = Github(username, password) # log into github my g
+github_org = g.get_organization("TurtleCoin")
+github_org_repos = None
+
+bot = commands.Bot(command_prefix='.git ') # add a space in the prefix
+bot.remove_command('help') # remove command so that we can make our own
+
+bot.making_issue = False
+bot._HELP_MSG = """\
 **TurtleCoin GitHub Bot**
 Commands:
 ```
@@ -23,18 +31,10 @@ Commands:
 .git cancel:    Cancel any issue being made 
 ```"""
 
+bot.__TEST_MODE = False # used to bypass any checks
 
-g = Github(username, password) # log into github my g
-github_org = g.get_organization("TurtleCoin")
-github_org_repos = None
-
-bot = commands.Bot(command_prefix='.git ') # add a space in the prefix
-bot.remove_command('help') # remove command so that we can make our own
-
-__TEST_MODE = False
-bot.__TEST_MODE = False # make a botvar to pass data between modules
-
-#reserved_commands = ['help', 'makeissue'] # list of the commands we make
+bot.reserved_commands = ['help', 'makeissue', 'ev'] # commands which do not count as repo_names or stuff like that
+# cancel is not included since we need to check that seperately
 
 ##############
 # Timer which keeps getting repo names
@@ -43,8 +43,7 @@ bot.__TEST_MODE = False # make a botvar to pass data between modules
 class BackgroundTimer(Thread):
     def get_org_repos(self):
         global github_org_repos
-        github_org_repos = github_org.get_repos()
-        bot.github_org_repos = github_org_repos
+        bot.github_org_repos = github_org.get_repos()
     def run(self):
         while True:
             self.get_org_repos()
@@ -52,8 +51,7 @@ class BackgroundTimer(Thread):
 
 timer = BackgroundTimer()
 timer.start()
-#
-#
+
 ##############
 
 @bot.event
@@ -62,18 +60,49 @@ async def on_ready():
     await channel.send("Github bot's up") # when ready send a confirmation message
 
 @bot.command()
-async def makeissue(ctx): # we makin an issue bois
+async def makeissue(ctx): # we makin an issue bois  
+
+    # already in the process of making an issue, just stop
+    if bot.making_issue:
+        await ctx.send("Already making issue! Say `.git cancel` to cancel current process.")
+        return
     
+    # weren't before, but now we are!
+    bot.making_issue = True
+
     await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.")
 
     repo_name = None
-    repo_name = await get_repo_name(ctx, bot)
+    repo_name = await get_repo_name(ctx, bot) # get repo name
+
     if not repo_name: # if it is returned false, then just exit
+        bot.making_issue = False # not making issue anymore
         return
+
+    # set it to false, done making issue    
+    bot.making_issue = False 
 
 @bot.command()
 async def help(ctx): # help message on ".git help"
-    await ctx.send(_HELP_MSG)
+    await ctx.send(bot._HELP_MSG)
+
+@bot.command()
+async def cancel(ctx): # just says "Cancelling" lol, the real work is done separately for each part
+    await ctx.send("Cancelling...")
+
+@bot.command()
+async def ev(ctx, arg): # print out value of given var
+    try: # check globals
+        await ctx.send(globals()[arg])
+    except KeyError: # not in globals
+        args = arg.split('.')
+        v = vars(bot)
+        ar = args[1]
+        await ctx.send(f'{arg}: {v[ar]}')
+    except Exception as e: # catch all
+        await ctx.send(f'Some error occured: {e}')
+
+
 
 """
 @bot.event

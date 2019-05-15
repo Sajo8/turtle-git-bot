@@ -1,34 +1,45 @@
 import asyncio
 
-async def check_if_repo_valid(repo_name, ctx, bot):
+async def check_if_repo_exists(repo_name, ctx, bot):
     await ctx.send("Checking...")
-    # if the repo_name is in the list of repos, then it's True. otherwise it's not
+    # if the repo_name is in the list of repos, then it's valid. otherwise it's not
     for repo in bot.github_org_repos:
         github_repo_name = repo.name
-        if repo_name == github_repo_name:
+        if repo_name == github_repo_name: # valid repo
             return True
-    return False
+    return False # invalid repo
 
 async def get_repo_name(ctx, bot):
 
     def check(m):
-        return m.channel == ctx.channel and m.author == ctx.author and m.content.startswith(".git")
+        # the original channel and the orignial author
+        # if the msg starts with ".git"
+        # if the msg is NOT in the reserved_commands
+        # if the msg is not for evaluating something (.git ev sometihng)
+        return m.channel == ctx.channel and m.author == ctx.author and m.content.startswith(".git") and m.content[5:] not in bot.reserved_commands and m.content[5:7] not in bot.reserved_commands
     
     await ctx.send("**Please enter the name of the repository in which you'd like to make an issue!** \n*Eg: `.git turtlecoin-wallet-electron`*")
 
     try:
         repo_name = await bot.wait_for('message', check=check, timeout=60.0)
-    except asyncio.TimeoutError: # cancel the process if the guy takes more than a minute
+    except asyncio.TimeoutError: 
+        # cancel the process if the guy takes more than a minute
         await ctx.send("*You took too long!* **Cancelling process.**")
         return False
+    
     repo_name = repo_name.content[5:]
 
+    if repo_name == 'cancel': # if it's a cancel then exit out
+        return False
+    
     if bot.__TEST_MODE: # return it w/out checking since just testing
         return repo_name
     
-    if await check_if_repo_valid(repo_name, ctx, bot): # it's all good
+    repo_exists = await check_if_repo_exists(repo_name, ctx, bot)
+    
+    if repo_exists: # it's all good
         await ctx.send("**Valid repo name!** Let's continue")
         return repo_name
-    else: # invalid, return false and quit
+    else: # invalid, retart
         await ctx.send("**Invalid repo name!** Please try again")
-        await get_repo_name(ctx, bot) # restart
+        await get_repo_name(ctx, bot) # restart 
