@@ -92,6 +92,9 @@ async def cancel(ctx): # just says "Cancelling" lol, the real work is done separ
 
 @bot.command()
 async def ev(ctx, arg): # print out value of given var
+    if ctx.author.id != 235707623985512451: # only me hahha
+        await ctx.send('Sorry, only the owner of the bot can use this command!')
+        return
     try: # check globals
         await ctx.send(globals()[arg])
     except KeyError: # not in globals
