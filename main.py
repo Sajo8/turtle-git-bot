@@ -108,13 +108,6 @@ async def cancel(ctx): # let user know the process is being cancelled; real thin
     await ctx.send("Cancelled process!")
 
 @bot.command()
-##TODO
-# change this
-# try to eval split(.)
-# then do 
-# globals()[0][1]
-# that way it works with normal stuff
-# and with ctx as well as bot
 async def ev(ctx, arg): # print out value of given var
     if ctx.author.id != 235707623985512451: # only me hahha
         await ctx.send('Sorry, only the owner of the bot can use this command!')
@@ -129,33 +122,5 @@ async def ev(ctx, arg): # print out value of given var
         await ctx.send(f'{arg}: {v[ar]}')
     except Exception as e: # catch all
         await ctx.send(f'Some error occured: {e}')
-
-
-
-"""
-@bot.event
-async def on_command_error(ctx, error):
-    print(error)
-    traceback.print_exc()
-    #pass # get rid of command errors
-    # this is called all the time whenver the user does `.git whatever`
-    # ugly when its being used for the title or whatever
-"""
-
-"""
-@bot.event
-async def on_message(message):
-    
-    if message.author == bot.user: # if the bot said it ignore
-        return
-    
-    ctx = await bot.get_context(message) # get context
-
-    if str(ctx.command) not in reserved_commands: # if command not in reserved ones
-        channel = ctx.channel 
-        await channel.send(f'{ctx.author} said: {ctx.message.content}')
-    else:
-        if ctx.valid: await bot.invoke(ctx) # otherwise let appropriate command run
-"""
 
 bot.run(token, bot=True)
