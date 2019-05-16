@@ -3,11 +3,15 @@
 # Make the issue
 # Catch errors, return descriptive ones
 # Make sure you can't do .git help or something when we're waiting for a repo name
+# Change how .git ev works
 
-# Done
+
+
+# DONE
 # Make sure makeissue can't be called multiple times
 # Cancel everything when .git cancel is called
 
+# Maybe make some .git status so that we can check the current status in the issue making thing: currently set repo name, issue title, issue body, etc.
 
 #------------------------------------
 
