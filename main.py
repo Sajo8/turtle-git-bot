@@ -1,9 +1,10 @@
 from github import Github
 from discord.ext import commands
 from threading import Thread
-import time
+from time import sleep
 
 from reponame import get_repo_name
+from issuetitle import get_issue_title
 
 try:
     username = 'Soja8'
@@ -47,7 +48,7 @@ class BackgroundTimer(Thread):
     def run(self):
         while True:
             self.get_org_repos()
-            time.sleep(86400) # sleep for one day
+            sleep(86400) # sleep for one day
 
 timer = BackgroundTimer()
 timer.start()
@@ -69,6 +70,8 @@ async def makeissue(ctx): # we makin an issue bois
     
     # weren't before, but now we are!
     bot.making_issue = True
+    # save author id
+    bot.issue_maker_author = ctx.author.id
 
     await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.")
 
@@ -76,6 +79,13 @@ async def makeissue(ctx): # we makin an issue bois
     repo_name = await get_repo_name(ctx, bot) # get repo name
 
     if not repo_name: # if it is returned false, then just exit
+        bot.making_issue = False # not making issue anymore
+        return
+    
+    issue_title = None
+    issue_title = await get_issue_title(ctx, bot)
+    
+    if not issue_title: # if it is returned false, then just exit
         bot.making_issue = False # not making issue anymore
         return
 
@@ -95,7 +105,7 @@ async def cancel(ctx): # let user know the process is being cancelled; real thin
     if bot.issue_maker_author != ctx.author.id:
         await ctx.send("You can't cancel someone else's issue!")
         return
-    await ctx.send("Cancelling process.")
+    await ctx.send("Cancelled process!")
 
 @bot.command()
 ##TODO

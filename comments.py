@@ -13,6 +13,15 @@
 
 # Maybe make some .git status so that we can check the current status in the issue making thing: currently set repo name, issue title, issue body, etc.
 
+
+# possibly make a req class
+#class github req
+# properties (See below comment)
+# list of these comments
+# associated with author
+# can make multiple at once
+# would be cool beo
+
 #------------------------------------
 
 ##############################
@@ -23,6 +32,11 @@
 # body
 # link
 # success/fail
+# maker id
+# maker user name
+
+# we dont need an issue class mb
+# just a function, and apss this to it
 
 # func to parse errors
 # and return in a proper manner

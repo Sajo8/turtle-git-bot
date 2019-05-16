@@ -33,7 +33,6 @@ async def get_repo_name(ctx, bot):
         return False
     
     repo_name = repo_name.content[5:] # strip the .git part
-    bot.issue_maker_author = ctx.author.id
 
     if repo_name == 'cancel': # if it's a cancel then exit out
         return False
