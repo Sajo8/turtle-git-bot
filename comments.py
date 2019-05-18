@@ -1,19 +1,14 @@
 # TODO
-# Do the issue title and issue body part
 # Make the issue
 # Catch errors, return descriptive ones
-# Make sure you can't do .git help or something when we're waiting for a repo name
 # Change how .git ev works
-
 
 
 # DONE
 # Make sure makeissue can't be called multiple times
 # Cancel everything when .git cancel is called
-
-
-
-# Maybe make some .git status so that we can check the current status in the issue making thing: currently set repo name, issue title, issue body, etc.
+# Make sure you can't do .git help or something when we're waiting for a repo name
+# Do the issue title and issue body part
 
 # for .git ev
 # try to do split(.)
@@ -22,7 +17,9 @@
 # that way it works with normal stuff
 # and with ctx as well as bot
 
-
+# Maybe make some .git status so that we can check the current status in the issue making thing: currently set repo name, issue title, issue body, etc.
+# make a git req class
+# assosicate makingissue with some user id
 
 
 # possibly make a req class

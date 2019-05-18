@@ -5,16 +5,22 @@ from time import sleep
 
 from reponame import get_repo_name
 from issuetitle import get_issue_title
+from issuebody import get_issue_body
+from waitforconf import confirmdetails
+from creategitissue import createissue
 
+# try to get tokenfile and password
+# we don't need the password but try anyways just to check
+# then we delete it
 try:
-    username = 'Soja8'
     password = open('password.txt').read()
     token = open('tokenfile.txt').read()
+    del password
 except:
     print("Can't find password/token file, aborting.")
     exit()
 
-g = Github(username, password) # log into github my g
+g = Github()
 github_org = g.get_organization("TurtleCoin") # get turtlecoin org
 github_org_repos = None
 
@@ -32,7 +38,7 @@ Commands:
 ```"""
 
 bot.issue_maker_author = None # used to ensure a couple of checks regarding op of message
-bot.__TEST_MODE = False # used to bypass any checks
+bot.__TEST_MODE = True # used to bypass any checks and make issue in test repo
 bot.reserved_commands = ['help', 'makeissue', 'ev'] # commands which do not count as repo_names or stuff like that
 # cancel is not included since we need to check that seperately
 
@@ -61,7 +67,7 @@ async def on_ready():
     await channel.send("Github bot's up") # when ready send a confirmation message
 
 @bot.command()
-async def makeissue(ctx): # we makin an issue bois  
+async def makeissue(ctx): # we makin an issue bois
 
     # already in the process of making an issue, just stop
     if bot.making_issue:
@@ -75,19 +81,40 @@ async def makeissue(ctx): # we makin an issue bois
 
     await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.")
 
-    repo_name = None
-    repo_name = await get_repo_name(ctx, bot) # get repo name
+    bot.repo_name = None
+    bot.repo_name = await get_repo_name(ctx, bot) # get repo name
 
-    if not repo_name: # if it is returned false, then just exit
+    if not bot.repo_name: # if it is returned false, then just exit
         bot.making_issue = False # not making issue anymore
         return
     
-    issue_title = None
-    issue_title = await get_issue_title(ctx, bot)
+    bot.issue_title = None
+    bot.issue_title = await get_issue_title(ctx, bot)
     
-    if not issue_title: # if it is returned false, then just exit
+    if not bot.issue_title: # if it is returned false, then just exit
         bot.making_issue = False # not making issue anymore
         return
+    
+    bot.issue_body = None
+    bot.issue_body = await get_issue_body(ctx, bot)
+    
+    if not bot.issue_body: # if it is returned false, then just exit
+        bot.making_issue = False # not making issue anymore
+        return
+    
+    if not await confirmdetails(ctx, bot): # exit process if they don't confirm
+        bot.making_issue = False
+        return
+    
+    # they've confirmed the thing, so let's continue
+    
+    made_issue_link = await createissue(ctx, bot)
+    if not made_issue_link: # if it errored out and returned false
+        await ctx.send("Cancelling process, please try again")
+        bot.making_issue = False
+        return
+    
+    await ctx.send(f'All done! The issue was succesfully made! \nLink: {made_issue_link}')
 
     # set it to false, done making issue    
     bot.making_issue = False 
