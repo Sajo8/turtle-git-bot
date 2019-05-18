@@ -63,7 +63,7 @@ timer.start()
 
 @bot.event
 async def on_ready():
-    channel = bot.get_channel(575153311259557915)
+    channel = bot.get_channel(401109818607140864)
     await channel.send("Github bot's up") # when ready send a confirmation message
 
 @bot.command()
