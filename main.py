@@ -38,7 +38,7 @@ Commands:
 ```"""
 
 bot.issue_maker_author = None # used to ensure a couple of checks regarding op of message
-bot.__TEST_MODE = True # used to bypass any checks and make issue in test repo
+bot.__TEST_MODE = False # used to bypass any checks and make issue in test repo
 bot.reserved_commands = ['help', 'makeissue', 'ev'] # commands which do not count as repo_names or stuff like that
 # cancel is not included since we need to check that seperately
 
