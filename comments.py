@@ -1,5 +1,4 @@
 # TODO
-# Make the issue
 # Catch errors, return descriptive ones
 # Change how .git ev works
 
