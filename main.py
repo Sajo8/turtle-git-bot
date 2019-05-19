@@ -96,21 +96,18 @@ async def makeissue(ctx): # we makin an issue bois
 
     await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.")
 
-    bot.repo_name = None
     bot.repo_name = await get_repo_name(ctx, bot) # get repo name
 
     if not bot.repo_name: # if it is returned false, then just exit
         bot.making_issue = False # not making issue anymore
         return
     
-    bot.issue_title = None
     bot.issue_title = await get_issue_title(ctx, bot)
     
     if not bot.issue_title: # if it is returned false, then just exit
         bot.making_issue = False # not making issue anymore
         return
     
-    bot.issue_body = None
     bot.issue_body = await get_issue_body(ctx, bot)
     
     if not bot.issue_body: # if it is returned false, then just exit
