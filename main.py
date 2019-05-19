@@ -35,11 +35,12 @@ Commands:
 .git help:      Show this message
 .git makeissue: Make an issue
 .git cancel:    Cancel any issue being made 
+.git status:    View status of current issue being made
 ```"""
 
 bot.issue_maker_author = None # used to ensure a couple of checks regarding op of message
 bot.__TEST_MODE = False # used to bypass any checks and make issue in test repo
-bot.reserved_commands = ['help', 'makeissue', 'ev'] # commands which do not count as repo_names or stuff like that
+bot.reserved_commands = ['help', 'makeissue', 'ev', 'status'] # commands which do not count as repo_names or stuff like that
 # cancel is not included since we need to check that seperately
 
 ##############
@@ -79,6 +80,10 @@ async def makeissue(ctx): # we makin an issue bois
     bot.making_issue = True
     # save author id
     bot.issue_maker_author = ctx.author.id
+    # create a full username
+    user_info = await bot.fetch_user(bot.issue_maker_author)
+    bot.full_username = f"@{user_info.name}#{user_info.discriminator}"
+
 
     await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.")
 
@@ -134,6 +139,19 @@ async def cancel(ctx): # let user know the process is being cancelled; real thin
         await ctx.send("You can't cancel someone else's issue!")
         return
     await ctx.send("Cancelled process!")
+
+@bot.command()
+async def status(ctx):
+    status_msg = f"""\
+**TurtleCoin Github Bot**
+*Status*
+**Currently making issue**: {bot.making_issue}
+**Author**: {bot.full_username}
+**Repo name**: {bot.repo_name}
+**Issue title**: {bot.issue_title}
+**Issue description**: {bot.issue_body}
+    """
+    await ctx.send(status_msg)
 
 @bot.command()
 async def ev(ctx, arg): # print out value of given var
