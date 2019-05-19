@@ -16,11 +16,8 @@ async def createissue(ctx, bot):
     else:
         github_repo = g.get_repo(f"TurtleCoin/{bot.repo_name}")
 
-    user_info = await bot.fetch_user(bot.issue_maker_author)
-    full_username = f"@{user_info.name}#{user_info.discriminator}"
-
     # add author info and note to the bdoy
-    bot.issue_body = f"**Issue made through Discord Bot** \n\n---\n{bot.issue_body} \n\n---\n**Author**: {full_username}\n**Id**: {bot.issue_maker_author}"
+    bot.issue_body = f"**Issue made through Discord Bot** \n\n---\n{bot.issue_body} \n\n---\n**Author**: {bot.full_username}\n**Id**: {bot.issue_maker_author}"
     
     try:
         made_github_issue = github_repo.create_issue(title=bot.issue_title, body=bot.issue_body)
