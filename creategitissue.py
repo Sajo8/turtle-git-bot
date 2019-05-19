@@ -1,13 +1,12 @@
 from github import Github
-#import asyncio
-
-# no need to try since we know it exists
-username = 'TurtleDiscordIssueBOT'
-password = open('password.txt').read()
-
-g = Github(username, password) # log into github my g
 
 async def createissue(ctx, bot):
+
+    # no need to try since we know it exists
+    username = 'TurtleDiscordIssueBOT'
+    password = open('password.txt').read()
+
+    g = Github(username, password) # log into github my g
 
     await ctx.send("Making issue...")
     

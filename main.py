@@ -18,6 +18,7 @@ try:
     del password
 except:
     print("Can't find password/token file, aborting.")
+    with open('.gitignore') as f: print(f.read())
     exit()
 
 g = Github()
@@ -38,10 +39,18 @@ Commands:
 .git status:    View status of current issue being made
 ```"""
 
-bot.issue_maker_author = None # used to ensure a couple of checks regarding op of message
 bot.__TEST_MODE = False # used to bypass any checks and make issue in test repo
 bot.reserved_commands = ['help', 'makeissue', 'ev', 'status'] # commands which do not count as repo_names or stuff like that
 # cancel is not included since we need to check that seperately
+
+bot.issue_maker_author = None # used to ensure a couple of checks regarding op of message
+bot.full_username = None # status msg and in github issue
+
+# vars used to make issue
+bot.repo_name = None
+bot.issue_title = None
+bot.issue_body = None
+
 
 ##############
 # Timer which keeps getting repo names
@@ -145,11 +154,11 @@ async def status(ctx):
     status_msg = f"""\
 **TurtleCoin Github Bot**
 *Status*
-**Currently making issue**: {bot.making_issue}
-**Author**: {bot.full_username}
-**Repo name**: {bot.repo_name}
-**Issue title**: {bot.issue_title}
-**Issue description**: {bot.issue_body}
+__Currently making issue__: {bot.making_issue}
+__Author__: {bot.full_username}
+__Repo name__: {bot.repo_name}
+__Issue title__: {bot.issue_title}
+__Issue description__: {bot.issue_body}
     """
     await ctx.send(status_msg)
 
