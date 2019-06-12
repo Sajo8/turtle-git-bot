@@ -12,14 +12,15 @@ async def get_issue_body(ctx, bot):
         # otherwise it isn't; ignore it and keep waiting for something
         # we wait till a) we get a valid name or b) we timeout (1 minute+)
     
-    await ctx.send("**Please enter a description of the issue you'd like to make!** \n*Eg: `.git (Descriptive information on the issue here)`*")
+    await ctx.send("**Please enter a description of the issue you'd like to make!** \n*Eg: `.git (Descriptive information on the issue here)`*", delete_after=bot.delete_delay)
 
     try:
         # wait for message
         issue_body = await bot.wait_for('message', check=check, timeout=60.0)
+        await issue_body.delete(delay=bot.delete_delay)
     except asyncio.TimeoutError:
         # cancel process if the guy takes more than a minute
-        await ctx.send("*You took too long!* **Cancelling process.**")
+        await ctx.send("*You took too long!* **Cancelling process.**", delete_after=bot.delete_delay)
         return False
     
     issue_body = issue_body.content[5:] # strip the ".git "
@@ -27,7 +28,7 @@ async def get_issue_body(ctx, bot):
     if issue_body == 'cancel': # exit out if it's cancel
         return False
 
-    await ctx.send("**Received issue description!** Let's continue")
+    await ctx.send("**Received issue description!** Let's continue", delete_after=bot.delete_delay)
 
     return issue_body
 
