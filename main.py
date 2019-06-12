@@ -136,6 +136,7 @@ async def makeissue(ctx): # we makin an issue bois
 
 @bot.command()
 async def help(ctx): # help message on ".git help"
+    await ctx.message.delete(delay=bot.delete_delay)
     help_msg = """\
 **TurtleCoin GitHub Bot**
 Commands:
@@ -150,6 +151,7 @@ Commands:
 @bot.command()
 async def cancel(ctx): # let user know the process is being cancelled; real thing is done seperately
     # only say this if an issue is being made and if the author is op of the issue
+    await ctx.message.delete(delay=bot.delete_delay)
     if not bot.making_issue:
         await ctx.send("Nothing to cancel", delete_after=bot.delete_delay)
         return
@@ -160,6 +162,7 @@ async def cancel(ctx): # let user know the process is being cancelled; real thin
 
 @bot.command()
 async def status(ctx):
+    await ctx.message.delete(delay=bot.delete_delay)
     status_msg = f"""\
 **TurtleCoin Github Bot**
 *Status*
@@ -173,6 +176,7 @@ __Issue description__: {bot.issue_body}
 
 @bot.command()
 async def ev(ctx, arg): # print out value of given var
+    await ctx.message.delete(delay=bot.delete_delay)
     if ctx.author.id != 235707623985512451: # only i (sajo8) can use it
         await ctx.send('Sorry, only the owner of the bot can use this command!', delete_after=bot.delete_delay)
         return
