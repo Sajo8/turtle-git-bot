@@ -1,7 +1,7 @@
 import asyncio
 
 async def check_if_repo_exists(repo_name, ctx, bot):
-    await ctx.send("Checking...", delete_after=bot.delete_delay)
+    await ctx.send("Checking...", delete_after=bot.msg_wait_and_delete_delay)
     # check if repo_name is in the list of repos
     # if it is, then it's valid, otherwise it aint
     for repo in bot.github_org_repos:
@@ -22,15 +22,15 @@ async def get_repo_name(ctx, bot):
         # otherwise it isn't; ignore it and keep waiting for something
         # we wait till a) we get a valid name or b) we timeout (1 minute+)
     
-    await ctx.send("**Please enter the name of the repository in which you'd like to make an issue!** \n*Eg: `.git turtlecoin-docs`*", delete_after=bot.delete_delay)
+    await ctx.send("**Please enter the name of the repository in which you'd like to make an issue!** \n*Eg: `.git turtlecoin-docs`*", delete_after=bot.msg_wait_and_delete_delay)
 
     try:
         # wait for message
-        repo_name = await bot.wait_for('message', check=check, timeout=60.0)
-        await repo_name.delete(delay=bot.delete_delay)
+        repo_name = await bot.wait_for('message', check=check, timeout=bot.msg_wait_and_delete_delay)
+        await repo_name.delete(delay=bot.msg_wait_and_delete_delay)
     except asyncio.TimeoutError: 
         # cancel the process if the guy takes more than a minute
-        await ctx.send("*You took too long!* **Cancelling process.**", delete_after=bot.delete_delay)
+        await ctx.send("*You took too long!* **Cancelling process.**", delete_after=bot.msg_wait_and_delete_delay)
         return False
     
     repo_name = repo_name.content[5:] # strip the .git part
@@ -44,8 +44,8 @@ async def get_repo_name(ctx, bot):
     repo_exists = await check_if_repo_exists(repo_name, ctx, bot)
     
     if repo_exists: # it's all good
-        await ctx.send("**Valid repo name!** Let's continue", delete_after=bot.delete_delay)
+        await ctx.send("**Valid repo name!** Let's continue", delete_after=bot.msg_wait_and_delete_delay)
         return repo_name
     else: # invalid, retart
-        await ctx.send("**Invalid repo name!** Please try again", delete_after=bot.delete_delay)
+        await ctx.send("**Invalid repo name!** Please try again", delete_after=bot.msg_wait_and_delete_delay)
         await get_repo_name(ctx, bot) # restart 

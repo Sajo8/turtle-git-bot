@@ -12,15 +12,15 @@ async def get_issue_title(ctx, bot):
         # otherwise it isn't; ignore it and keep waiting for something
         # we wait till a) we get a valid name or b) we timeout (1 minute+)
     
-    await ctx.send("**Please enter the title of the issue you'd like to make!** \n*Eg: `.git Typo in Getting Started Guide`*", delete_after=bot.delete_delay)
+    await ctx.send("**Please enter the title of the issue you'd like to make!** \n*Eg: `.git Typo in Getting Started Guide`*", delete_after=bot.msg_wait_and_delete_delay)
 
     try:
         # wait for message
-        issue_title = await bot.wait_for('message', check=check, timeout=60.0)
-        await issue_title.delete(delay=bot.delete_delay)
+        issue_title = await bot.wait_for('message', check=check, timeout=bot.msg_wait_and_delete_delay)
+        await issue_title.delete(delay=bot.msg_wait_and_delete_delay)
     except asyncio.TimeoutError:
         # cancel process if the guy takes more than a minute
-        await ctx.send("*You took too long!* **Cancelling process.**", delete_after=bot.delete_delay)
+        await ctx.send("*You took too long!* **Cancelling process.**", delete_after=bot.msg_wait_and_delete_delay)
         return False
     
     issue_title = issue_title.content[5:] # strip the ".git "
@@ -28,7 +28,7 @@ async def get_issue_title(ctx, bot):
     if issue_title == 'cancel': # exit out if it's cancel
         return False
 
-    await ctx.send("**Received issue title!** Let's continue", delete_after=bot.delete_delay)
+    await ctx.send("**Received issue title!** Let's continue", delete_after=bot.msg_wait_and_delete_delay)
 
     return issue_title
 

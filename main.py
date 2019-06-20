@@ -40,8 +40,8 @@ bot.issue_title = None
 bot.issue_body = None
 
 # time after which a message is auto deleteed
-# 1 minute
-bot.delete_delay = 60.0
+# 5 minutes
+bot.msg_wait_and_delete_delay = 300.0
 
 # TurtleCoin, jc5Traq
 allowed_servers = [388915017187328002]
@@ -80,11 +80,11 @@ async def on_guild_join(guild):
 @bot.command()
 async def makeissue(ctx): # we makin an issue bois
 
-    await ctx.message.delete(delay=bot.delete_delay)
+    await ctx.message.delete(delay=bot.msg_wait_and_delete_delay)
 
     # already in the process of making an issue, just stop
     if bot.making_issue:
-        await ctx.send("Already making issue! Say `.git cancel` to cancel current process.", delete_after=bot.delete_delay)
+        await ctx.send("Already making issue! Say `.git cancel` to cancel current process.", delete_after=bot.msg_wait_and_delete_delay)
         return
 
     # weren't before, but now we are!
@@ -96,7 +96,7 @@ async def makeissue(ctx): # we makin an issue bois
     bot.full_username = f"@{user_info.name}#{user_info.discriminator}"
 
 
-    await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.", delete_after=bot.delete_delay)
+    await ctx.send("It seems you'd like to make an issue! Let's continue. Say `.git cancel` at any time to cancel the process.", delete_after=bot.msg_wait_and_delete_delay)
 
     bot.repo_name = await get_repo_name(ctx, bot) # get repo name
 
@@ -124,18 +124,18 @@ async def makeissue(ctx): # we makin an issue bois
 
     made_issue_link = await createissue(ctx, bot)
     if not made_issue_link: # if it errored out and returned false
-        await ctx.send("Cancelling process, please try again", delete_after=bot.delete_delay)
+        await ctx.send("Cancelling process, please try again", delete_after=bot.msg_wait_and_delete_delay)
         bot.making_issue = False
         return
 
-    await ctx.send(f'All done! The issue was succesfully made! \nLink: {made_issue_link}', delete_after=bot.delete_delay)
+    await ctx.send(f'All done! The issue was succesfully made! \nLink: {made_issue_link}', delete_after=bot.msg_wait_and_delete_delay)
 
     # set it to false, done making issue
     bot.making_issue = False
 
 @bot.command()
 async def help(ctx): # help message on ".git help"
-    await ctx.message.delete(delay=bot.delete_delay)
+    await ctx.message.delete(delay=bot.msg_wait_and_delete_delay)
     help_msg = """\
 **TurtleCoin GitHub Bot**
 Commands:
@@ -145,23 +145,23 @@ Commands:
 .git cancel:    Cancel any issue being made
 .git status:    View status of current issue being made
 ```"""
-    await ctx.send(help_msg, delete_after=bot.delete_delay)
+    await ctx.send(help_msg, delete_after=bot.msg_wait_and_delete_delay)
 
 @bot.command()
 async def cancel(ctx): # let user know the process is being cancelled; real thing is done seperately
     # only say this if an issue is being made and if the author is op of the issue
-    await ctx.message.delete(delay=bot.delete_delay)
+    await ctx.message.delete(delay=bot.msg_wait_and_delete_delay)
     if not bot.making_issue:
-        await ctx.send("Nothing to cancel", delete_after=bot.delete_delay)
+        await ctx.send("Nothing to cancel", delete_after=bot.msg_wait_and_delete_delay)
         return
     if bot.issue_maker_author != ctx.author.id:
-        await ctx.send("You can't cancel someone else's issue!", delete_after=bot.delete_delay)
+        await ctx.send("You can't cancel someone else's issue!", delete_after=bot.msg_wait_and_delete_delay)
         return
-    await ctx.send("Cancelled process!", delete_after=bot.delete_delay)
+    await ctx.send("Cancelled process!", delete_after=bot.msg_wait_and_delete_delay)
 
 @bot.command()
 async def status(ctx):
-    await ctx.message.delete(delay=bot.delete_delay)
+    await ctx.message.delete(delay=bot.msg_wait_and_delete_delay)
     status_msg = f"""\
 **TurtleCoin Github Bot**
 *Status*
@@ -171,23 +171,23 @@ __Repo name__: {bot.repo_name}
 __Issue title__: {bot.issue_title}
 __Issue description__: {bot.issue_body}
     """
-    await ctx.send(status_msg, delete_after=bot.delete_delay)
+    await ctx.send(status_msg, delete_after=bot.msg_wait_and_delete_delay)
 
 @bot.command()
 async def ev(ctx, arg): # print out value of given var
-    await ctx.message.delete(delay=bot.delete_delay)
+    await ctx.message.delete(delay=bot.msg_wait_and_delete_delay)
     if ctx.author.id != 235707623985512451: # only i (sajo8) can use it
-        await ctx.send('Sorry, only the owner of the bot can use this command!', delete_after=bot.delete_delay)
+        await ctx.send('Sorry, only the owner of the bot can use this command!', delete_after=bot.msg_wait_and_delete_delay)
         return
     try: # check globals
-        await ctx.send(globals()[arg], delete_after=bot.delete_delay)
+        await ctx.send(globals()[arg], delete_after=bot.msg_wait_and_delete_delay)
     except KeyError: # not in globals
         # assume it's a botvar and try to send that
         args = arg.split('.')
         v = vars(bot)
         ar = args[1]
-        await ctx.send(f'{arg}: {v[ar]}', delete_after=bot.delete_delay)
+        await ctx.send(f'{arg}: {v[ar]}', delete_after=bot.msg_wait_and_delete_delay)
     except Exception as e: # catch all
-        await ctx.send(f'Some error occured: {e}', delete_after=bot.delete_delay)
+        await ctx.send(f'Some error occured: {e}', delete_after=bot.msg_wait_and_delete_delay)
 
 bot.run(token, bot=True)
