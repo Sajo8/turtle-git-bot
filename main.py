@@ -11,11 +11,9 @@ from creategitissue import createissue
 
 # try to get tokenfile and password
 # we don't need the password but try anyways just to check
-# then we delete it
 try:
-    password = open('password.txt').read()
+    open('password.txt')
     token = open('tokenfile.txt').read()
-    del password
 except:
     print("Can't find password/token file, aborting.")
     exit()
@@ -69,7 +67,8 @@ timer.start()
 
 @bot.event
 async def on_ready():
-    channel = bot.get_channel(401109818607140864)
+    # send ready msg to personal server
+    channel = bot.get_channel(591108780020727824)
     await channel.send("Github bot's up") # when ready send a confirmation message
     print("Bot up!")
 
