@@ -3,7 +3,7 @@ import utils
 import globals
 
 async def check_if_repo_exists(repo_name, ctx):
-    await ctx.send("Checking...", delete_after=globals.msg_deletion_delay)
+    await ctx.send(f"<@{ctx.author.id}, validating repo...", delete_after=globals.msg_deletion_delay)
     # check if repo_name is in the list of repos
     # if it is, then it's valid, otherwise it aint
     for repo in globals.github_org_repos:

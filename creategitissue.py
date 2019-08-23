@@ -39,7 +39,7 @@ async def createissue(ctx, bot):
     try:
         made_github_issue = github_repo.create_issue(title=issue_title, body=issue_body)
     except GithubException as e:
-        await ctx.send("Error! {e}".format(e.data), delete_after=globals.msg_deletion_delay)
+        await ctx.send(f"<@{author_id}>, an error occured! {e}".format(e.data), delete_after=globals.msg_deletion_delay)
         return False
     
     github_issue_number = made_github_issue.number
