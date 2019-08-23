@@ -3,3 +3,4 @@ tokenfile.txt
 password.txt
 test.py
 comments.py
+__pycache__/

@@ -1,26 +1,29 @@
 import asyncio
+import utils
+import globals
 
 async def get_issue_body(ctx, bot):
 
+    author_id = utils.get_current_issue_author_id(ctx)
+
     def check(m):
-        # the original channel and the orignial author
-        # if the msg starts with ".git"
-        # if the msg is NOT in the reserved_commands
-        # if the msg is not for evaluating something (.git ev sometihng)
-        return m.channel == ctx.channel and m.author == ctx.author and m.content.startswith(".git") and m.content[5:] not in bot.reserved_commands and m.content[5:7] not in bot.reserved_commands
-        # if all of these are true, it's a valid repo_name
-        # otherwise it isn't; ignore it and keep waiting for something
-        # we wait till a) we get a valid name or b) we timeout (1 minute+)
+
+        msg_valid = utils.check_message(ctx, m)
+        return msg_valid
+
+        # If this returns true, it's valid
+        # Otherwise, we ignore it and keep waiting
+        # Either till we get a valid name or the timeout
     
-    await ctx.send("**Please enter a description of the issue you'd like to make!** \n*Eg: `.git (Descriptive information on the issue here)`*", delete_after=bot.msg_wait_and_delete_delay)
+    await ctx.send(f"<@{author_id}>, **please enter a description of the issue you'd like to make!** \n*Eg: `.git (Descriptive information on the issue here)`*", delete_after=globals.msg_deletion_delay)
 
     try:
         # wait for message
-        issue_body = await bot.wait_for('message', check=check, timeout=bot.msg_wait_and_delete_delay)
-        await issue_body.delete(delay=bot.msg_wait_and_delete_delay)
+        issue_body = await bot.wait_for('message', check=check, timeout=globals.msg_deletion_delay)
+        await issue_body.delete(delay=globals.msg_deletion_delay)
     except asyncio.TimeoutError:
-        # cancel process if the guy takes more than a minute
-        await ctx.send("*You took too long!* **Cancelling process.**", delete_after=bot.msg_wait_and_delete_delay)
+        # cancel process if the guy takes more than the set timeout
+        await ctx.send(f"<@{author_id}>, *you took too long!* **Cancelling process.**", delete_after=globals.msg_deletion_delay)
         return False
     
     issue_body = issue_body.content[5:] # strip the ".git "
@@ -28,7 +31,7 @@ async def get_issue_body(ctx, bot):
     if issue_body == 'cancel': # exit out if it's cancel
         return False
 
-    await ctx.send("**Received issue description!** Let's continue", delete_after=bot.msg_wait_and_delete_delay)
+    await ctx.send(f"<@{author_id}>, **received issue description!** Let's continue", delete_after=globals.msg_deletion_delay)
 
     return issue_body
 

@@ -1,28 +1,41 @@
 import asyncio
+import utils
+import globals
 
 async def confirmdetails(ctx, bot):
 
     accepted_commands = ["cancel", "continue"]
+    author_id = utils.get_current_issue_author_id(ctx)
 
     def check(m):
-        # the original channel and the orignial author
-        # if the msg starts with ".git"
-        # if the msg is NOT in the reserved_commands
-        # if the msg is not for evaluating something (.git ev sometihng)
-        return m.channel == ctx.channel and m.author == ctx.author and m.content.startswith(".git") and m.content[5:] not in bot.reserved_commands and m.content[5:7] not in bot.reserved_commands and m.content[5:] in accepted_commands
-        # if all of these are true, it's a valid repo_name
-        # otherwise it isn't; ignore it and keep waiting for something
-        # we wait till a) we get a valid name or b) we timeout (1 minute+)
+
+        msg_valid = utils.check_message(ctx, m)
+        if msg_valid:
+            # Do one more check, should only be two options
+            # "cancel" or "continue"
+            msg_valid = m.content[5:] in accepted_commands
+        return msg_valid
+        
+        # If this returns true, it's valid
+        # Otherwise, we ignore it and keep waiting
+        # Either till we get a valid name or the timeout
     
-    await ctx.send(f'**Chosen information:**\n*Type `.git continue` to make the issue or `.git cancel` to cancel the process.*\n**Repo name:** {bot.repo_name}\n**Issue title:** {bot.issue_title}\n**Issue body:** {bot.issue_body}', delete_after=bot.msg_wait_and_delete_delay)
+    current_issue = utils.get_current_issue(ctx)
+
+    repo_name = current_issue.get_repo_name()
+    issue_title = current_issue.get_issue_title()
+    issue_body = current_issue.get_issue_body()
+    
+    await ctx.send(f"<@{author_id}>, **Chosen information:**\n*Type `.git continue` to make the issue or `.git cancel` to cancel the process.*\n**Repo name:** {repo_name}\n**Issue title:** {issue_title}\n**Issue body:** {issue_body}", delete_after=globals.msg_deletion_delay)
 
     try:
         # wait for message
-        continue_confirmation = await bot.wait_for('message', check=check, timeout=bot.msg_wait_and_delete_delay)
-        await continue_confirmation.delete(delay=bot.msg_wait_and_delete_delay)
+        continue_confirmation = await bot.wait_for('message', check=check, timeout=globals.msg_deletion_delay)
+        # delete confirmation message
+        await continue_confirmation.delete(delay=globals.msg_deletion_delay)
     except asyncio.TimeoutError:
         # cancel process if the guy takes more than a minute
-        await ctx.send("*You took too long!* **Cancelling process.**", delete_after=bot.msg_wait_and_delete_delay)
+        await ctx.send(f"<@{author_id}>, *you took too long!* **Cancelling process.**", delete_after=globals.msg_deletion_delay)
         return False
     
     continue_confirmation = continue_confirmation.content[5:] # strip git
