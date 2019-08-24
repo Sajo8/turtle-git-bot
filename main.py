@@ -153,10 +153,12 @@ async def cancel(ctx):
     # only say this if an issue is being made and if the author is op of the issue
     
     await ctx.message.delete(delay=globals.msg_deletion_delay)
-    author_id = utils.get_current_issue_author_id(ctx)
+
+    author_id = ctx.author.id
     
     if utils.author_is_making_issue(ctx):
         # attempt to cancel issue which the author is making
+
         cancelled_successfully = utils.cancel_current_issue(ctx)
         if cancelled_successfully:
             await ctx.send(f"<@{author_id}>, cancelled process!", delete_after=globals.msg_deletion_delay)
